@@ -1,10 +1,22 @@
 using System.Net;
 using System.Net.Sockets;
+using System.Reflection.Metadata;
+using System.Text;
 
-// You can use print statements as follows for debugging, they'll be visible when running tests.
-Console.WriteLine("Logs from your program will appear here!");
-
-// Uncomment this block to pass the first stage
 TcpListener server = new(IPAddress.Any, 6379);
 server.Start();
-server.AcceptSocket(); // wait for client
+
+using Socket socket = server.AcceptSocket();
+socket.Send(Server.Serialize(Server.pong), SocketFlags.None);
+
+class Server
+{
+    public const string pong = "PONG";
+    public const string ping = "PING";
+    public const string endMessage = "\r\n";
+    public const string stringType = "+";
+    public static byte[] Serialize(string value)
+    {
+        return Encoding.UTF8.GetBytes($"{stringType}{value}{endMessage}");
+    }
+}
