@@ -1,13 +1,29 @@
 using System.Net;
 using System.Net.Sockets;
-using System.Reflection.Metadata;
 using System.Text;
 
 TcpListener server = new(IPAddress.Any, 6379);
 server.Start();
 
 using Socket socket = server.AcceptSocket();
-socket.Send(Server.Serialize(Server.pong), SocketFlags.None);
+socket.Receive(new byte[1024]);
+
+var data = new byte[1024];
+while (true)
+{
+    if (socket.Available == 0) continue;
+    var receivedBytes = socket.Receive(data);
+    if (receivedBytes == 0) continue;
+
+    var receivedMessaged = Encoding.ASCII.GetString(data, 0, receivedBytes);
+    Console.WriteLine(receivedMessaged);
+
+    if (receivedMessaged == Server.ping)
+    {
+        socket.Send(Server.Serialize(Server.pong), SocketFlags.None);
+    }
+}
+
 
 class Server
 {
