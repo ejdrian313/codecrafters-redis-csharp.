@@ -4,10 +4,14 @@ using System.Text;
 
 Redis redis = new(new(IPAddress.Loopback, 6379));
 redis.Start();
-while (true)
+using (Socket socket = redis.AcceptSocket())
 {
-    redis.HandleMessage();
+    while (true)
+    {
+        redis.HandleMessage(socket);
+    }
 }
+
 
 class Redis
 {
@@ -22,11 +26,11 @@ class Redis
         Console.WriteLine("Server has started on {0}.", server.LocalEndpoint);
     }
 
-    internal void HandleMessage()
+    internal void HandleMessage(Socket? socket)
     {
-        var socket = server.AcceptSocket();
+        if (socket == null) return;
         var message = GetMessage(socket);
-        if (IsPing(message))
+        // if (IsPing(message))
         {
             PongResposne(socket, message!);
         }
@@ -34,7 +38,9 @@ class Redis
 
     static bool IsPing(string? message)
     {
-        return message?.StartsWith(Server.ping) == true;
+        Console.WriteLine($"IsPing: {message?.StartsWith(Message.ping) == true}");
+
+        return message?.StartsWith(Message.ping) == true;
     }
 
     private string? GetMessage(Socket socket)
@@ -44,27 +50,33 @@ class Redis
         if (receivedBytes == 0) return null;
 
         var receivedMessaged = Encoding.ASCII.GetString(data, 0, receivedBytes);
-        Console.WriteLine(receivedMessaged);
+        Console.WriteLine($"receivedMessaged: {receivedMessaged}");
         return receivedMessaged;
     }
 
     private void PongResposne(Socket socket, string recivedMessage)
     {
-        var response = "+PONG\r\n";
-        var elapsedMessage = recivedMessage.Replace(Message.ping, string.Empty);
-        if (elapsedMessage?.Length > 0)
-        {
-            response = elapsedMessage;
-        }
-        Console.WriteLine(response);
-        socket.Send(Message.Serialize(response), SocketFlags.None);
+        // var response = "+PONG\r\n";
+        // var elapsedMessage = recivedMessage.Replace(Message.ping, string.Empty);
+        // Console.WriteLine($"elapsedMessage: {elapsedMessage}");
+        // if (elapsedMessage?.Length > 0)
+        // {
+        //     response = elapsedMessage;
+        // }
+        // Console.WriteLine(response);
+        socket.Send(Message.Serialize(Message.pong), SocketFlags.None);
+    }
+
+    internal Socket AcceptSocket()
+    {
+        return server.AcceptSocket();
     }
 }
 
 class Message
 {
     public const string pong = "PONG";
-    public const string ping = "PING";
+    public const string ping = "ping";
     public const string endMessage = "\r\n";
     public const string stringType = "+";
     public static byte[] Serialize(string value)
