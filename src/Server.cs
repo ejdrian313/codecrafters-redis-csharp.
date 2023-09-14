@@ -4,10 +4,18 @@ using System.Text;
 
 TcpListener server = new(IPAddress.Any, 6379);
 server.Start();
-using TcpClient client = server.AcceptTcpClient();
+
 byte[] bytes = new byte[256];
 while (true)
 {
+    using TcpClient client = server.AcceptTcpClient();
+    ThreadPool.QueueUserWorkItem(HandleClient, client);
+}
+
+void HandleClient(object? state)
+{
+    if (state is not TcpClient) return;
+    TcpClient client = (TcpClient)state;
     NetworkStream clientStream = client.GetStream();
     while (clientStream.Read(bytes, 0, bytes.Length) != 0)
     {
