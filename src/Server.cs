@@ -8,7 +8,7 @@ server.Start();
 byte[] bytes = new byte[256];
 while (true)
 {
-    using TcpClient client = server.AcceptTcpClient();
+    TcpClient client = server.AcceptTcpClient();
     ThreadPool.QueueUserWorkItem(HandleClient, client);
 }
 
@@ -22,6 +22,7 @@ void HandleClient(object? state)
         Span<byte> msg = Encoding.ASCII.GetBytes("+PONG\r\n");
         clientStream.Write(msg);
     }
+    client.Close();
 }
 
 // Redis redis = new(new(IPAddress.Loopback, 6379));
