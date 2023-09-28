@@ -10,7 +10,6 @@ public class CommandHandler
     }
     public int Handle(StreamWriter sw, object? command)
     {
-        Console.WriteLine("Command: {0}", command);
         if (command == null) return 0;
 
         if (command is object[] commands)
@@ -23,13 +22,11 @@ public class CommandHandler
                 "get" => _storage.Get((string)commands[1]),
                 _ => string.Empty,
             };
-            Console.WriteLine("commandResponse: {0}", commandResponse);
             sw.Write(commandResponse);
             return 0;
         }
         if (int.TryParse((string)command, out var number))
         {
-            Console.WriteLine("number: {0}", number);
             return -1;
         }
 
@@ -38,7 +35,6 @@ public class CommandHandler
             "ping" => "+PONG\r\n",
             _ => string.Empty,
         };
-        Console.WriteLine("Response: {0}", response);
         sw.Write(response);
         return 0;
     }

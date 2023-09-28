@@ -6,13 +6,9 @@ public class Parser
     private enum RespType { SimpleString = '+', BulkString = '$', Array = '*', }
     public static object? Parse(StreamReader reader)
     {
-        Console.WriteLine("Parse...");
         var read = reader.Read();
-        Console.WriteLine("Parse... {0}", read);
         if (read == -1) return -1;
-        //parse reader.Read() into a RespType
         RespType type = (RespType)read;
-        Console.WriteLine("Type... {0}", type);
         return type switch
         {
             RespType.SimpleString => ParseSingleString(reader),
