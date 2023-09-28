@@ -1,8 +1,14 @@
 namespace Commands;
 
-public static class CommandHandler
+public class CommandHandler
 {
-    public static int Handle(StreamWriter sw, object? command)
+    private readonly IStorage _storage;
+
+    public CommandHandler(IStorage storage)
+    {
+        this._storage = storage;
+    }
+    public int Handle(StreamWriter sw, object? command)
     {
         Console.WriteLine("Command: {0}", command);
         if (command == null) return 0;
@@ -13,6 +19,13 @@ public static class CommandHandler
             {
                 "echo" => $"+{((string)commands[1])}\r\n",
                 "ping" => "+PONG\r\n",
+                "set" => _storage.Set((string)commands[1], commands[2]),
+                "get" => _storage.Get((string)commands[1]) switch
+                {
+                    string s => $"${s.Length}\r\n{s}\r\n",
+                    int i => $":{i}\r\n",
+                    _ => string.Empty,
+                },
                 _ => string.Empty,
             };
             Console.WriteLine("commandResponse: {0}", commandResponse);
@@ -35,4 +48,5 @@ public static class CommandHandler
         return 0;
     }
 }
+
 

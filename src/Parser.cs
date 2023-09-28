@@ -6,40 +6,20 @@ public class Parser
     private enum RespType { SimpleString = '+', BulkString = '$', Array = '*', }
     public static object? Parse(StreamReader reader)
     {
-        try
+        Console.WriteLine("Parse...");
+        var read = reader.Read();
+        Console.WriteLine("Parse... {0}", read);
+        if (read == -1) return -1;
+        //parse reader.Read() into a RespType
+        RespType type = (RespType)read;
+        Console.WriteLine("Type... {0}", type);
+        return type switch
         {
-            Console.WriteLine("Parse...");
-            var read = reader.Read();
-            Console.WriteLine("Parse... {0}", read);
-            if (read == -1) return -1;
-            //parse reader.Read() into a RespType
-            RespType type = (RespType)read;
-            Console.WriteLine("Type... {0}", type);
-            return type switch
-            {
-                RespType.SimpleString => ParseSingleString(reader),
-                RespType.BulkString => ParseBulkString(reader),
-                RespType.Array => ParseArray(reader),
-                _ => null,
-            };
-        }
-        catch (System.Exception ex)
-        {
-            Console.WriteLine(ex);
-            throw;
-        }
-        // var read = reader.Read();
-        // Console.WriteLine("Parse... {0}", read);
-        // //parse reader.Read() into a RespType
-        // RespType type = (RespType)read;
-        // Console.WriteLine("Type... {0}", type);
-        // return type switch
-        // {
-        //     RespType.SimpleString => ParseSingleString(reader),
-        //     RespType.BulkString => ParseBulkString(reader),
-        //     RespType.Array => ParseArray(reader),
-        //     _ => null,
-        // };
+            RespType.SimpleString => ParseSingleString(reader),
+            RespType.BulkString => ParseBulkString(reader),
+            RespType.Array => ParseArray(reader),
+            _ => null,
+        };
     }
     private static string ReadLine(StreamReader reader)
     {
