@@ -1,30 +1,58 @@
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+using Commands;
+namespace Server;
 
-TcpListener server = new(IPAddress.Any, 6379);
-server.Start();
-
-byte[] bytes = new byte[256];
-while (true)
+public class Program
 {
-    TcpClient client = server.AcceptTcpClient();
-    ThreadPool.QueueUserWorkItem(HandleClient, client);
-}
-
-void HandleClient(object? state)
-{
-    if (state is not TcpClient) return;
-    TcpClient client = (TcpClient)state;
-    NetworkStream clientStream = client.GetStream();
-    while (clientStream.Read(bytes, 0, bytes.Length) != 0)
+    private static void Main(string[] args)
     {
-        Span<byte> msg = Encoding.ASCII.GetBytes("+PONG\r\n");
-        clientStream.Write(msg);
-    }
-    client.Close();
-}
+        TcpListener server = new(IPAddress.Any, 6379);
+        server.Start();
+        try
+        {
+            while (true)
+            {
+                var newClient = server.AcceptTcpClient();
+                Console.WriteLine("Connected! ");
 
+                var t = new Thread(HandleClient);
+                Console.WriteLine("Thread! ");
+
+                t.Start(newClient);
+                Console.WriteLine("Thread Started ");
+            }
+        }
+        catch (IOException e)
+        {
+            Console.WriteLine(e.Message);
+        }
+        Console.WriteLine("Exit!");
+    }
+
+    static void HandleClient(object? client)
+    {
+        Console.WriteLine("HandleClient!");
+        if (client is not TcpClient) return;
+        Console.WriteLine("client is TCPCLIENT");
+        NetworkStream clientStream = ((TcpClient)client).GetStream();
+        Console.WriteLine("client stream");
+
+        using var reader = new StreamReader(clientStream);
+        Console.WriteLine("reader");
+        using var writer = new StreamWriter(clientStream);
+        writer.AutoFlush = true;
+        Console.WriteLine("writer");
+        while (true)
+        {
+            Console.WriteLine("not empty");
+            var result = CommandHandler.Handle(writer, Parser.Parse(reader));
+            if (result == -1) break;
+        }
+        clientStream.Close();
+    }
+}
 // Redis redis = new(new(IPAddress.Loopback, 6379));
 // redis.Start();
 // using (Socket socket = redis.AcceptSocket())
