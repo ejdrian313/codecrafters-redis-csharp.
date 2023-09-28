@@ -19,13 +19,8 @@ public class CommandHandler
             {
                 "echo" => $"+{((string)commands[1])}\r\n",
                 "ping" => "+PONG\r\n",
-                "set" => _storage.Set((string)commands[1], commands[2]),
-                "get" => _storage.Get((string)commands[1]) switch
-                {
-                    string s => $"${s.Length}\r\n{s}\r\n",
-                    int i => $":{i}\r\n",
-                    _ => string.Empty,
-                },
+                "set" => _storage.Set((string)commands[1], commands[2], commands.ElementAtOrDefault(3), commands.ElementAtOrDefault(4)),
+                "get" => _storage.Get((string)commands[1]),
                 _ => string.Empty,
             };
             Console.WriteLine("commandResponse: {0}", commandResponse);
